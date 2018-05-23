@@ -1,7 +1,9 @@
 version: "2"
 services:
   release-name:
-    image: kbacha/git-release-name
+    build:
+      context: ./
+      dockerfile: ./Dockerfile.worker
   app:
     links:
       - release-name
@@ -9,4 +11,7 @@ services:
       - release-name
     build:
       context: ./
+      dockerfile: ./Dockerfile.web
+    ports:
+      - 80:3000
 
