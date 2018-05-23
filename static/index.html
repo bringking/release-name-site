@@ -1,0 +1,174 @@
+<html>
+
+<head>
+    <title>Release Names</title>
+    <meta name=”apple-mobile-web-app-capable” content=”yes”>
+    <meta name="viewport" content="width = device-width, initial-scale = 1" />
+    <script src="//unpkg.com/unfetch/dist/unfetch.umd.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans" rel="stylesheet">
+    <style>
+        body,
+        html {
+            background: salmon;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
+        .wrap {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #fff;
+            outline: none;
+            padding: 1.30rem;
+            font-size: 1.30rem;
+            z-index: 2;
+            color: #fff;
+        }
+
+        input::-webkit-input-placeholder {
+            color: #fff;
+            transition: color .4s ease;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 1.25rem;
+        }
+
+        .footer {
+            position: fixed;
+            display: flex;
+            width: 100%;
+            bottom: 1rem;
+            color: #fff;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .footer a {
+            color: rgb(109, 109, 181);
+        }
+
+        .hidden {
+            transition: opacity 150ms ease-in;
+            opacity: 0;
+        }
+
+        .form {
+            transition: opacity 150ms ease-in;
+            position: absolute;
+        }
+
+        .result {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .name {
+            width: 100%;
+            color: #fff;
+            text-align: center;
+        }
+
+        .button {
+            padding: 1.3rem;
+            border: 2px solid rgb(109, 109, 181);
+            color: rgb(109, 109, 181);
+            background: white;
+            border-radius: 2px;
+            margin: 0 auto;
+        }
+
+        @media only screen and (min-width: 1024px) {
+            .footer {
+                bottom: 1rem;
+                right: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <form id="release-name-form" class="form">
+            <input name="sha" type="text" placeholder="Git SHA e.g. deadbeef" id="name-input">
+        </form>
+        <div class="result hidden" id="results-pane">
+            <h1 class="name" id="generated-name"></h1>
+            <button class="button" id="retry-button">Generate Another</button>
+        </div>
+    </div>
+    <div class="footer">
+        <div>
+            Made with ❤️ by
+            <a href="https://github.com/bringking">@thebringking</a> and
+            <a href="https://github.com/kbacha">@kbacha</a>
+        </div>
+    </div>
+    <script>
+        const form = document.getElementById('release-name-form');
+        const resultsPane = document.getElementById('results-pane');
+        const retryButton = document.getElementById('retry-button');
+        const generatedName = document.getElementById('generated-name');
+        const nameInput = document.getElementById('name-input');
+
+        function hideResult() {
+            form.classList.remove('hidden');
+            resultsPane.classList.add('hidden');
+            nameInput.focus();
+        }
+
+        function displayResult(name) {
+            form.classList.add('hidden');
+            resultsPane.classList.remove('hidden');
+            generatedName.innerText = name;
+            retryButton.focus();
+        }
+
+        function clearForm() {
+            nameInput.value = '';
+        }
+
+        // Call API
+        function getName(sha) {
+            return unfetch('/api', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ sha })
+            }).then(r => {
+                return r.json();
+            })
+        }
+
+        // Handle Form Submission
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            getName(e.target.elements[0].value).then((data) => {
+                displayResult(data.name);
+            });
+        }, false);
+
+        // Handle retry
+        retryButton.addEventListener('click', () => {
+            clearForm();
+            hideResult();
+        })
+
+        // Focus the input on load
+        document.addEventListener("DOMContentLoaded", function (event) {
+            nameInput.focus();
+        });
+    </script>
+</body>
+
+</html>
