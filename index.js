@@ -19,4 +19,4 @@ router.post("/api", koaBody(), async ({ request, response }, next) => {
 // Setup Routes
 app.use(router.routes()).use(router.allowedMethods());
 // Start the server
-app.listen(3000);
+app.listen(process.env.PORT || 3000);
