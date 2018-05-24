@@ -1,182 +1,289 @@
 <html>
 
 <head>
-    <title>Release Names</title>
-    <meta name=”apple-mobile-web-app-capable” content=”yes”>
-    <meta name="viewport" content="width = device-width, initial-scale = 1" />
-    <script src="//unpkg.com/unfetch/dist/unfetch.umd.js"></script>
-    <link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans" rel="stylesheet">
-    <style>
-        body,
-        html {
-            background: salmon;
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-            font-family: 'IBM Plex Sans', sans-serif;
-        }
+  <title>Release Name Generator</title>
+  <meta name="description" content="Generate awesome code names for your releases! Can be based on a Git SHA or a random value"
+  />
+  <meta name=”apple-mobile-web-app-capable” content=”yes”>
+  <meta name="viewport" content="width = device-width, initial-scale = 1" />
+  <script src="//unpkg.com/unfetch/dist/unfetch.umd.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans" rel="stylesheet">
+  <style>
+    body,
+    html {
+      background: salmon;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: 'IBM Plex Sans', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
 
-        .wrap {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    .wrap {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-        input {
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid #fff;
-            outline: none;
-            padding: 1.30rem;
-            font-size: 1.30rem;
-            z-index: 2;
-            color: #fff;
-        }
+    input {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #fff;
+      outline: none;
+      padding: 1.30rem;
+      font-size: 1.30rem;
+      z-index: 2;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
 
-        input::-webkit-input-placeholder {
-            color: #fff;
-            transition: color .4s ease;
-            font-family: 'IBM Plex Sans', sans-serif;
-            font-size: 1.25rem;
-        }
+    input::-webkit-input-placeholder {
+      color: #fff;
+      transition: color .4s ease;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 1.25rem;
 
-        .footer {
-            position: fixed;
-            display: flex;
-            width: 100%;
-            bottom: 1rem;
-            color: #fff;
-            align-items: center;
-            justify-content: center;
-        }
+    }
 
-        .footer a {
-            color: rgb(109, 109, 181);
-        }
+    .footer {
+      position: fixed;
+      display: flex;
+      width: 100%;
+      bottom: 1rem;
+      color: #fff;
+      align-items: center;
+      justify-content: center;
+    }
 
-        .hidden {
-            transition: opacity 150ms ease-in;
-            opacity: 0;
-        }
+    .footer a {
+      color: rgb(109, 109, 181);
+    }
 
-        .form {
-            transition: opacity 150ms ease-in;
-            position: absolute;
-        }
+    .hidden {
+      transition: opacity 150ms ease-in;
+      opacity: 0;
+      pointer-events: none;
+    }
 
-        .result {
-            position: absolute;
-            display: flex;
-            flex-direction: column;
-        }
+    .form-wrap {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: opacity 150ms ease-in;
+    }
 
-        .name {
-            width: 100%;
-            color: #fff;
-            text-align: center;
-        }
+    .result {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      margin: 0 auto;
+      width: 100%;
+    }
 
-        .button {
-            padding: 1.3rem;
-            border: 2px solid rgb(109, 109, 181);
-            color: rgb(109, 109, 181);
-            background: white;
-            border-radius: 2px;
-            margin: 0 auto;
-        }
+    .name {
+      width: 100%;
+      color: white;
+      text-align: center;
+    }
 
-        @media only screen and (min-width: 1024px) {
-            .footer {
-                bottom: 1rem;
-                right: 1rem;
-            }
-        }
-    </style>
+    .button {
+      padding: 1.3rem;
+      border: 2px solid rgb(109, 109, 181);
+      color: rgb(109, 109, 181);
+      background: white;
+      border-radius: 2px;
+      margin: 0 auto;
+      cursor: pointer;
+    }
+
+    .button.primary {
+      color: white;
+      border: 2px solid rgb(132, 132, 206);
+      background: rgb(109, 109, 181);
+    }
+
+    form h1 {
+      color: white;
+    }
+
+    .error {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: white;
+    }
+
+    @media only screen and (min-width: 1024px) {
+      .footer {
+        bottom: 1rem;
+        right: 1rem;
+      }
+    }
+  </style>
 </head>
 
 <body>
-    <div class="wrap">
-        <form id="release-name-form" class="form">
-            <input name="sha" type="text" placeholder="Git SHA e.g. deadbeef" id="name-input">
-        </form>
-        <div class="result hidden" id="results-pane">
-            <h1 class="name" id="generated-name"></h1>
-            <button class="button" id="retry-button">Generate Another</button>
-        </div>
+  <div class="wrap">
+    <div class="form-wrap" id="release-name-form-wrapper">
+      <form class="form" id="release-name-form" autocomplete="false">
+        <input name="sha" type="text" placeholder="SHA e.g. deadbeef" id="name-input" />
+      </form>
+      <div class="button-group">
+        <button class="button" id="random-button">Random</button>
+        <button class="button primary" id="generate-button">Generate</button>
+      </div>
     </div>
-    <div class="footer">
-        <div>
-            Made with ❤️ by
-            <a href="https://github.com/bringking">@thebringking</a> and
-            <a href="https://github.com/kbacha">@kbacha</a>
-        </div>
+    <div class="result hidden" id="results-pane">
+      <h1 class="name" id="generated-name"></h1>
+      <button class="button" id="retry-button">Generate Another</button>
     </div>
-    <script>
-        const form = document.getElementById('release-name-form');
-        const resultsPane = document.getElementById('results-pane');
-        const retryButton = document.getElementById('retry-button');
-        const generatedName = document.getElementById('generated-name');
-        const nameInput = document.getElementById('name-input');
+    <div class="error hidden" id="error-panel">
+      <p id="error-message"></p>
+      <button class="button" id="try-again-button">Try Again</button>
+    </div>
+  </div>
+  <div class="footer">
+    <div>
+      Made with ❤️ by
+      <a href="https://github.com/bringking">@thebringking</a> and
+      <a href="https://github.com/kbacha">@kbacha</a>
+    </div>
+  </div>
+  <script>
+    const formWrapper = document.getElementById('release-name-form-wrapper');
+    const form = document.getElementById('release-name-form');
+    const resultsPane = document.getElementById('results-pane');
+    const generateButton = document.getElementById('generate-button');
+    const randomButton = document.getElementById('random-button');
+    const retryButton = document.getElementById('retry-button');
+    const generatedName = document.getElementById('generated-name');
+    const nameInput = document.getElementById('name-input');
+    const errorPanel = document.getElementById('error-panel');
+    const errorMessage = document.getElementById('error-message');
+    const tryAgainButton = document.getElementById('try-again-button');
 
-        function hideResult() {
-            form.classList.remove('hidden');
-            resultsPane.classList.add('hidden');
-            nameInput.focus();
+    function hideResult() {
+      formWrapper.classList.remove('hidden');
+      resultsPane.classList.add('hidden');
+      nameInput.focus();
+    }
+
+    function displayResult(name) {
+      formWrapper.classList.add('hidden');
+      resultsPane.classList.remove('hidden');
+      generatedName.innerText = name;
+      retryButton.focus();
+    }
+
+    function displayError(message) {
+      formWrapper.classList.add('hidden');
+      errorPanel.classList.remove('hidden');
+      errorMessage.innerText = message;
+      tryAgainButton.focus();
+    }
+
+    function resolveError() {
+      formWrapper.classList.remove('hidden');
+      errorPanel.classList.add('hidden');
+      errorMessage.innerText = '';
+      nameInput.focus();
+    }
+
+    function clearForm() {
+      nameInput.value = '';
+    }
+
+    function validate() {
+      return new Promise((resolve, reject) => {
+        const val = form.elements[0].value;
+        const asHex = parseInt(val, 16);
+        if (asHex.toString(16) === val) {
+          resolve();
+        } else {
+          reject(new Error('SHA must be hexadecimal'))
         }
+      })
+    }
+    // Call API
+    function getName(sha) {
+      return unfetch('/api/sha', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ sha })
+      }).then(r => {
+        return r.json();
+      })
+    }
 
-        function displayResult(name) {
-            form.classList.add('hidden');
-            resultsPane.classList.remove('hidden');
-            generatedName.innerText = name;
-            retryButton.focus();
-        }
+    function getRandomName() {
+      return unfetch('/api/random', {
+        method: 'GET'
+      }).then(r => {
+        return r.json();
+      })
+    }
 
-        function clearForm() {
-            nameInput.value = '';
-        }
+    function formSubmit() {
+      getName(form.elements[0].value).then((data) => {
+        displayResult(data.name);
+      });
+    }
 
-        // Call API
-        function getName(sha) {
-            return unfetch('/api', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ sha })
-            }).then(r => {
-                return r.json();
-            })
-        }
+    // Focus the input on load
+    document.addEventListener("DOMContentLoaded", function (event) {
+      nameInput.focus();
 
-        // Handle Form Submission
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            getName(e.target.elements[0].value).then((data) => {
-                displayResult(data.name);
-            });
-        }, false);
-
-        // Handle retry
-        retryButton.addEventListener('click', () => {
-            clearForm();
-            hideResult();
+      // Handle Form Submission
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        validate().then(() => {
+          formSubmit();
+        }).catch(() => {
+          displayError("Please enter a valid hexadecimal value");
         })
+      });
 
-        // Focus the input on load
-        document.addEventListener("DOMContentLoaded", function (event) {
-            nameInput.focus();
+      generateButton.addEventListener('click', (e) => {
+        validate().then(() => {
+          formSubmit();
+        }).catch(() => {
+          displayError("Please enter a valid hexadecimal value");
+        })
+      });
+
+      randomButton.addEventListener('click', (e) => {
+        getRandomName().then((data) => {
+          displayResult(data.name);
         });
-    </script>
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-32494194-9"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', 'UA-32494194-9');
-    </script>
+      });
+
+      // Handle retry
+      retryButton.addEventListener('click', () => {
+        clearForm();
+        hideResult();
+      });
+
+      tryAgainButton.addEventListener('click', () => {
+        clearForm();
+        resolveError();
+      });
+    });
+  </script>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-32494194-9"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'UA-32494194-9');
+  </script>
 </body>
 
 </html>
